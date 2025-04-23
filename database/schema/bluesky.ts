@@ -9,14 +9,14 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const blueskyUsers = pgTable('bluesky_users', {
-  id: uuid('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   did: text('did').notNull().unique(),
   handle: text('handle').notNull(),
   email: text('email').notNull().unique(),
 });
 
 export const blueskyPosts = pgTable('bluesky_posts', {
-  id: uuid('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   cid: text('id').notNull().unique(),
   type: text('type').notNull(),
   text: text('text').notNull(),

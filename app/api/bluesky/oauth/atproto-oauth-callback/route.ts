@@ -16,20 +16,23 @@ export async function GET(
     console.log('authorize() was called with state:', state);
     console.log('User authenticated as:', session.did);
 
-    // Get the protocol and host from the request headers
-    const protocol = request.headers.get('x-forwarded-proto') || 'http';
-    const host = request.headers.get('host') || 'localhost:3000';
+    // Force redirect to localhost regardless of the incoming host
+    // This is for development when using Ngrok
+    const redirectUrl = process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000/settings'
+      : `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host') || 'localhost:3000'}/settings`;
 
-    // Redirect back to the settings page with absolute URL
-    return NextResponse.redirect(`${protocol}://${host}/settings`);
+    // Redirect back to the settings page
+    return NextResponse.redirect(redirectUrl);
   } catch (err: unknown) {
     console.error('Server error: ', err);
 
-    // Get the protocol and host from the request headers
-    const protocol = request.headers.get('x-forwarded-proto') || 'http';
-    const host = request.headers.get('host') || 'localhost:3000';
+    // Force redirect to localhost on error too
+    const redirectUrl = process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000/settings?error=authentication_failed'
+      : `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host') || 'localhost:3000'}/settings?error=authentication_failed`;
 
-    // On error, still redirect back to settings page with absolute URL
-    return NextResponse.redirect(`${protocol}://${host}/settings?error=authentication_failed`);
+    // On error, still redirect back to settings page
+    return NextResponse.redirect(redirectUrl);
   }
 }

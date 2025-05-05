@@ -22,7 +22,7 @@ for (let i = 0; i < numKeys; i++) {
   console.log(`Generated keypair ${i + 1}: kid ${kid}`);
 }
 
-const libDir = path.join(process.cwd(), 'app/api/bluesky/auth/jwks.json');
+const libDir = path.join(process.cwd(), 'app/api/bluesky/oauth/jwks.json');
 const publicJwksPath = path.join(libDir, 'jwks.json');
 await fs.writeFile(
   publicJwksPath,

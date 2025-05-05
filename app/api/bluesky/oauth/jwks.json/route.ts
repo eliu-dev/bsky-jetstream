@@ -5,7 +5,7 @@ import path from 'path';
 export async function GET() {
   const publicJwksPath = path.join(
     process.cwd(),
-    './app/api/bluesky/auth/jwks.json/jwks.json'
+    './app/api/bluesky/oauth/jwks.json/jwks.json'
   );
   const publicJwks = JSON.parse(fs.readFileSync(publicJwksPath, 'utf8'));
   console.log(publicJwks);

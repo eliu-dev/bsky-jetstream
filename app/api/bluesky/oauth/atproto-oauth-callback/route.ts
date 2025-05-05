@@ -6,9 +6,7 @@ import { ProfileViewDetailed } from '@atproto/api/dist/client/types/app/bsky/act
 
 export async function GET(
   request: NextRequest
-): Promise<
-  NextResponse<{ [key: string]: boolean | string | ProfileViewDetailed }>
-> {
+): Promise<NextResponse> {
   console.log(request);
   try {
     const params = new URLSearchParams(request.nextUrl.searchParams);
@@ -16,33 +14,22 @@ export async function GET(
 
     // Process successful authentication here
     console.log('authorize() was called with state:', state);
-
     console.log('User authenticated as:', session.did);
 
-    const agent = new Agent(session);
+    // Get the protocol and host from the request headers
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || 'localhost:3000';
 
-    // Make Authenticated API calls
-    if (agent.did) {
-      const profile = await agent.getProfile({ actor: agent.did });
-      console.log('Bsky profile:', profile.data);
-      return NextResponse.json(
-        { ok: true, profile: profile.data },
-        { status: 200 }
-      );
-    } else {
-      return NextResponse.json(
-        { ok: false, message: 'User did not authenticate' },
-        { status: 401 }
-      );
-    }
+    // Redirect back to the settings page with absolute URL
+    return NextResponse.redirect(`${protocol}://${host}/settings`);
   } catch (err: unknown) {
     console.error('Server error: ', err);
-    return NextResponse.json(
-      {
-        okay: false,
-        error: err instanceof Error ? err.message : JSON.stringify(err),
-      },
-      { status: 400 }
-    );
+
+    // Get the protocol and host from the request headers
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || 'localhost:3000';
+
+    // On error, still redirect back to settings page with absolute URL
+    return NextResponse.redirect(`${protocol}://${host}/settings?error=authentication_failed`);
   }
 }

@@ -27,7 +27,7 @@ const clientId =
 
 export const blueskyClient = await NodeOAuthClient.fromClientId({
   clientId:
-    `${clientId}/api/bluesky/auth/client-metadata.json` as OAuthClientIdDiscoverable,
+    `${clientId}/api/bluesky/oauth/client-metadata.json` as OAuthClientIdDiscoverable,
 
   keyset: await Promise.all([
     JoseKey.fromImportable(process.env.JWT_PRIVATE_KEY_1 as string),

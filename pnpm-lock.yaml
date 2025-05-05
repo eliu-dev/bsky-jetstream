@@ -41,6 +41,9 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.2.0
         version: 1.2.0(@types/react@19.1.2)(react@19.1.0)
+      '@skyware/jetstream':
+        specifier: ^0.2.2
+        version: 0.2.2(@atcute/client@2.0.9)
       '@tanstack/react-query':
         specifier: ^5.74.3
         version: 5.74.3(react@19.1.0)
@@ -150,6 +153,14 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+
+  '@atcute/bluesky@1.0.15':
+    resolution: {integrity: sha512-+EFiybmKQ97aBAgtaD+cKRJER5AMn3cZMkEwEg/pDdWyzxYJ9m1UgemmLdTgI8VrxPufKqdXS2nl7uO7TY6BPA==}
+    peerDependencies:
+      '@atcute/client': ^1.0.0 || ^2.0.0
+
+  '@atcute/client@2.0.9':
+    resolution: {integrity: sha512-QNDm9gMP6x9LY77ArwY+urQOBtQW74/onEAz42c40JxRm6Rl9K9cU4ROvNKJ+5cpVmEm1sthEWVRmDr5CSZENA==}
 
   '@atproto-labs/did-resolver@0.1.11':
     resolution: {integrity: sha512-qXNzIX2GPQnxT1gl35nv/8ErDdc4Fj/+RlJE7oyE7JGkFAPUyuY03TvKJ79SmWFsWE8wyTXEpLuphr9Da1Vhkw==}
@@ -1391,6 +1402,9 @@ packages:
     resolution: {integrity: sha512-1hsLpRHfSuMB9ee2aAdh0Htza/X3f4djhYISrggqGe3xopNjOcePiSDkDDoPzDYaaMCrbqGP1H2TYU7bgL9PmA==}
     engines: {node: '>=20.0.0'}
 
+  '@skyware/jetstream@0.2.2':
+    resolution: {integrity: sha512-d1MtWPTIFEciSzV8OClXZCJoz0DJ7aupt4EZSwpGAASYG0ZIPmZTt7RVJkoFzQyqRPHAMD7CvEwu0ut3MHX1og==}
+
   '@smithy/abort-controller@4.0.2':
     resolution: {integrity: sha512-Sl/78VDtgqKxN2+1qduaVE140XF+Xg+TafkncspwM4jFP/LHr76ZHmIY/y3V1M0mMLNk+Je6IGbzxy23RSToMw==}
     engines: {node: '>=18.0.0'}
@@ -1982,6 +1996,9 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  event-target-polyfill@0.0.4:
+    resolution: {integrity: sha512-Gs6RLjzlLRdT8X9ZipJdIZI/Y6/HhRLyq9RdDlCsnpxr/+Nn6bU2EFGuC94GjxqhM+Nmij2Vcq98yoHrU8uNFQ==}
+
   fast-deep-equal@2.0.1:
     resolution: {integrity: sha512-bCK/2Z4zLidyB4ReuIsvALH6w31YfAQDmXMqMx6FyfHqvBxtjC0eRumeSu4Bs3XtXwpyIywtSTrVT99BxY1f9w==}
 
@@ -2245,6 +2262,9 @@ packages:
 
   parseley@0.12.1:
     resolution: {integrity: sha512-e6qHKe3a9HWr0oMRVDTRhKce+bRO8VGQR3NyVwcjwrbhMmFCX9KszEV35+rn4AdilFAq9VPxP/Fe1wC9Qjd2lw==}
+
+  partysocket@1.1.3:
+    resolution: {integrity: sha512-87Jd/nqPoWnVfzHE6Z12WLWTJ+TAgxs0b7i2S163HfQSrVDUK5tW/FC64T5N8L5ss+gqF+EV0BwjZMWggMY3UA==}
 
   peberminta@0.9.0:
     resolution: {integrity: sha512-XIxfHpEuSJbITd1H3EeQwpcZbTLHc+VVr8ANI9t5sit565tsI4/xK3KWTUFE2e6QiangUkh3B0jihzmGnNrRsQ==}
@@ -2614,6 +2634,12 @@ packages:
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
+
+  '@atcute/bluesky@1.0.15(@atcute/client@2.0.9)':
+    dependencies:
+      '@atcute/client': 2.0.9
+
+  '@atcute/client@2.0.9': {}
 
   '@atproto-labs/did-resolver@0.1.11':
     dependencies:
@@ -3947,6 +3973,13 @@ snapshots:
       '@peculiar/asn1-schema': 2.3.15
       '@peculiar/asn1-x509': 2.3.15
 
+  '@skyware/jetstream@0.2.2(@atcute/client@2.0.9)':
+    dependencies:
+      '@atcute/bluesky': 1.0.15(@atcute/client@2.0.9)
+      partysocket: 1.1.3
+    transitivePeerDependencies:
+      - '@atcute/client'
+
   '@smithy/abort-controller@4.0.2':
     dependencies:
       '@smithy/types': 4.2.0
@@ -4589,6 +4622,8 @@ snapshots:
       '@esbuild/win32-ia32': 0.25.2
       '@esbuild/win32-x64': 0.25.2
 
+  event-target-polyfill@0.0.4: {}
+
   fast-deep-equal@2.0.1: {}
 
   fast-xml-parser@4.4.1:
@@ -4803,6 +4838,10 @@ snapshots:
     dependencies:
       leac: 0.6.0
       peberminta: 0.9.0
+
+  partysocket@1.1.3:
+    dependencies:
+      event-target-polyfill: 0.0.4
 
   peberminta@0.9.0: {}
 

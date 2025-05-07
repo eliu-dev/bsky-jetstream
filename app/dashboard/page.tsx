@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Sparkles } from 'lucide-react';
+import { Info, Sparkles, RefreshCw, Copy, Send, Clock, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
 
@@ -19,11 +19,29 @@ const formSchema = z.object({
   text: z.string().min(1, 'Post cannot be empty').max(300, 'Post must be less than 300 characters'),
 });
 
+// Type for saved cringe posts
+type CringePost = {
+  id: string;
+  text: string;
+  prompt?: string;
+  isPosted: boolean;
+  createdAt: string;
+};
+
+// Simple function to format date
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [cringePosts, setCringePosts] = useState<CringePost[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [postFilter, setPostFilter] = useState<'user' | 'all'>('user');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,12 +50,18 @@ export default function Dashboard() {
     },
   });
 
+  // Load Bluesky connection and saved posts
   useEffect(() => {
     const checkConnection = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get('/api/bluesky/oauth/session');
         setIsConnected(response.data.ok === true);
+
+        if (response.data.ok) {
+          // Load saved cringe posts
+          fetchCringePosts();
+        }
       } catch (error) {
         console.error('Error checking Bluesky connection:', error);
         setIsConnected(false);
@@ -49,45 +73,118 @@ export default function Dashboard() {
     checkConnection();
   }, []);
 
+  // Fetch saved cringe posts
+  const fetchCringePosts = async (filter: 'user' | 'all' = postFilter) => {
+    try {
+      setLoadingPosts(true);
+      console.log("Fetching cringe posts with filter:", filter);
+      const response = await axios.get(`/api/bluesky/cringe?filter=${filter}`);
+      console.log("Fetch response:", response.data);
+      if (response.data.posts) {
+        setCringePosts(response.data.posts);
+        console.log("Set cringe posts:", response.data.posts.length);
+      }
+    } catch (error) {
+      console.error('Error fetching cringe posts:', error);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  // Update posts when filter changes
+  useEffect(() => {
+    if (isConnected) {
+      fetchCringePosts(postFilter);
+    }
+  }, [postFilter]);
+
+  // Post to Bluesky and save to database
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true);
+
+      // 1. Post to Bluesky first
       const response = await fetch('/api/bluesky/post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: values.text }),
       });
+
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to post');
+
+      // If the post to Bluesky failed, stop here and show error
+      if (!response.ok) {
+        console.error("Failed to post to Bluesky:", data.error);
+        throw new Error(data.error || 'Failed to post to Bluesky');
+      }
+
+      console.log("Successfully posted to Bluesky:", data);
+
+      // Only attempt to save to our database if the Bluesky post succeeded
+      try {
+        // 2. Save the posted cringe to our database
+        const saveResponse = await axios.post('/api/bluesky/cringe', {
+          text: values.text,
+          prompt: values.text,
+          isPosted: true,
+          blueskyPostId: data.res?.uri?.split('/').pop() // Extract post ID if available
+        });
+
+        console.log("Saved cringe post to database:", saveResponse.data);
+      } catch (saveError) {
+        // If saving to our DB fails, just log it - the post still succeeded
+        console.error("Failed to save post to database:", saveError);
+        // We don't throw here because the post to Bluesky already succeeded
+      }
+
+      // 3. Reset form and refresh the posts list
       form.reset();
+      fetchCringePosts();
+
     } catch (error) {
       console.error('Error creating post:', error);
+      alert('Failed to post to Bluesky: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  async function generateCringe() {
+  // Generate cringe content
+  async function generateCringeContent() {
     try {
       setIsGenerating(true);
-      const response = await fetch('/api/generate-cringe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: form.getValues('text') }),
+      const prompt = form.getValues().text || "Generate something cringe";
+
+      // Call the Google Cloud function
+      const response = await axios.post('https://bluesky-cringe-generator-895544443438.us-east4.run.app/', {
+        prompt: prompt
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate cringe post');
+      // Update the text field with the generated content
+      if (response.data && response.data.tweet) {
+        form.setValue('text', response.data.tweet);
+      } else {
+        // If the response doesn't have the expected format
+        console.error('Unexpected response format:', response.data);
+        form.setValue('text', "Sorry, couldn't generate cringe content. Try again!");
       }
-
-      const data = await response.json();
-      form.setValue('text', data.tweet);
     } catch (error) {
-      console.error('Error generating cringe post:', error);
+      console.error('Error generating cringe content:', error);
+      form.setValue('text', "Error generating cringe content. Try again!");
     } finally {
       setIsGenerating(false);
     }
   }
+
+  // Copy post text to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  // Use post in the form
+  const usePost = (text: string) => {
+    form.setValue('text', text);
+  };
 
   if (isLoading) {
     return (
@@ -124,10 +221,11 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Create Post</CardTitle>
+            <CardDescription>Create a new post for Bluesky or generate cringe content</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -140,7 +238,7 @@ export default function Dashboard() {
                       <FormLabel>Post Content</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="What's on your mind?"
+                          placeholder="What's on your mind? Or enter a prompt to generate content..."
                           className="min-h-[100px]"
                           {...field}
                         />
@@ -149,22 +247,104 @@ export default function Dashboard() {
                     </FormItem>
                   )}
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={generateCringe}
+                    onClick={generateCringeContent}
                     disabled={isGenerating}
+                    className="flex items-center gap-1"
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Sparkles className="h-4 w-4" />
                     {isGenerating ? 'Generating...' : 'Generate Cringe'}
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Posting...' : 'Post'}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex items-center gap-1"
+                  >
+                    <Send className="h-4 w-4" />
+                    {isSubmitting ? 'Posting...' : 'Post to Bluesky'}
                   </Button>
                 </div>
               </form>
             </Form>
+          </CardContent>
+        </Card>
+
+        {/* Saved Cringe Posts Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Your Bluesky Cringe Posts</CardTitle>
+                <CardDescription>Your posted LinkedIn-style cringe content</CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant={postFilter === 'user' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPostFilter('user')}
+                >
+                  My Posts
+                </Button>
+                <Button
+                  variant={postFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPostFilter('all')}
+                >
+                  All Posts
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loadingPosts ? (
+              <div className="flex items-center justify-center p-8">
+                <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : cringePosts.length === 0 ? (
+              <div className="text-center p-6 border border-dashed rounded-lg text-muted-foreground">
+                <p>You haven't posted any cringe content yet.</p>
+                <p>Generate some cringe content and post it to Bluesky!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cringePosts.map((post) => (
+                  <Card key={post.id} className="bg-muted/50">
+                    <CardContent className="pt-6">
+                      <p className="whitespace-pre-wrap">{post.text}</p>
+                    </CardContent>
+                    <CardFooter className="flex justify-between text-xs text-muted-foreground border-t pt-4">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatDate(post.createdAt)}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(post.text)}
+                          className="h-7 px-2"
+                        >
+                          <Copy className="h-3 w-3 mr-1" />
+                          Copy
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => usePost(post.text)}
+                          className="h-7 px-2"
+                        >
+                          <Share2 className="h-3 w-3 mr-1" />
+                          Use
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

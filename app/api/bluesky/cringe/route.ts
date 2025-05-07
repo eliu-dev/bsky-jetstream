@@ -31,12 +31,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Get data from request
-        const { text, prompt, isPosted, blueskyPostId, cid } = await req.json();
-        console.log("POST - Text length:", text?.length,
-            "Prompt:", prompt?.substring(0, 30),
-            "isPosted:", isPosted,
-            "blueskyPostId:", blueskyPostId,
-            "cid:", cid);
+        const { text, prompt } = await req.json();
 
         if (!text) {
             return NextResponse.json(
@@ -44,54 +39,35 @@ export async function POST(req: NextRequest) {
                 { status: 400 }
             );
         }
-
-        // First check if the user exists in blueskyUsers table
         const existingUser = await db.query.blueskyUsers.findFirst({
             where: eq(blueskyUsers.did, blueskySession.did)
         });
 
-        console.log("POST - Existing user in blueskyUsers:", existingUser ? "Yes" : "No");
 
         if (!existingUser) {
-            console.log("POST - User doesn't exist in blueskyUsers table, creating record");
-            // We need to create the user first to satisfy the foreign key constraint
             try {
-                // Create a user record with profile data
                 await db.insert(blueskyUsers).values({
                     did: blueskySession.did,
                     handle: blueskySession.did.split(':')[2] || 'unknown',
                     email: `${blueskySession.did.split(':')[2] || 'unknown'}@bsky.social`
                 });
-                console.log("POST - Created user record for:", blueskySession.did);
             } catch (error) {
-                console.error("POST - Error creating user record:", error);
                 return NextResponse.json(
                     { error: 'Failed to create user record' },
                     { status: 500 }
                 );
             }
         }
-
-        console.log("POST - Attempting to save post with userId:", authSession.user.id, "and did:", blueskySession.did);
-
         // Save to database - only for posts that have been posted to Bluesky
         try {
-            // Use only the fields we need - omitting postId to avoid the foreign key constraint
             const postData = {
                 did: blueskySession.did,
                 userId: authSession.user.id,
                 text,
                 prompt: prompt || null,
-                isPosted: true,
                 createdAt: new Date(),
-                // Explicitly omit postId field
             };
-
-            console.log("POST - Insert values:", postData);
-
             const newPost = await db.insert(blueskyCringePosts).values(postData).returning();
-
-            console.log("POST - Post saved successfully, returned ID:", newPost[0]?.id);
 
             return NextResponse.json({
                 success: true,

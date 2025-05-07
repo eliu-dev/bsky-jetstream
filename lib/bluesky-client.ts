@@ -11,11 +11,7 @@ import { db } from '@/database/db';
 
 import {
   blueskySessionStore,
-  insertBlueskySession,
-  getBlueskySession,
   blueskyStateStore,
-  insertBlueskyState,
-  getBlueskyState,
 } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 import { JoseKey } from '@atproto/jwk-jose';

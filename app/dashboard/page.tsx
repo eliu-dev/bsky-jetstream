@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Info, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
 
@@ -23,6 +23,7 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,6 +64,28 @@ export default function Dashboard() {
       console.error('Error creating post:', error);
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function generateCringe() {
+    try {
+      setIsGenerating(true);
+      const response = await fetch('/api/generate-cringe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: form.getValues('text') }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate cringe post');
+      }
+
+      const data = await response.json();
+      form.setValue('text', data.tweet);
+    } catch (error) {
+      console.error('Error generating cringe post:', error);
+    } finally {
+      setIsGenerating(false);
     }
   }
 
@@ -126,9 +149,20 @@ export default function Dashboard() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Posting...' : 'Post'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={generateCringe}
+                    disabled={isGenerating}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {isGenerating ? 'Generating...' : 'Generate Cringe'}
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Posting...' : 'Post'}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>

@@ -7,6 +7,7 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { users } from './auth';
 
 export const blueskyUsers = pgTable('bluesky_users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -23,6 +24,16 @@ export const blueskyPosts = pgTable('bluesky_posts', {
   collection: text('collection'),
   time_us: timestamp('time_us'),
   rkey: text('rkey'),
+  did: text('did')
+    .notNull()
+    .references(() => blueskyUsers.did, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull(),
+});
+
+export const blueskyCringePosts = pgTable('bluesky_cringe_posts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  text: text('text').notNull(),
   did: text('did')
     .notNull()
     .references(() => blueskyUsers.did, { onDelete: 'cascade' }),

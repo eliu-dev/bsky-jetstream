@@ -10,7 +10,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: bluesky
   ECR_REGISTRY: 724772087148.dkr.ecr.us-east-1.amazonaws.com
-  ECS_SERVICE: bluesky
+  ECS_SERVICE: bluesky-service-cbaprj1p
   ECS_CLUSTER: bluesky
   ECS_TASK_DEFINITION: bluesky
 

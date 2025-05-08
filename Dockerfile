@@ -31,6 +31,10 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Ensure cert and env var are available for build
+COPY ./certs ./certs
+ENV PGSSLROOTCERT=/app/certs/global-bundle.pem
+
 # Build the application with minimal checks
 RUN pnpm run build --no-lint
 

@@ -5,6 +5,7 @@ import { NodePgDatabase, drizzle as pgDrizzle } from 'drizzle-orm/node-postgres'
 
 import * as schema from './schema';
 import { WebSocket } from 'ws';
+import fs from 'fs';
 
 let db: NeonDatabase<typeof schema> | NodePgDatabase<typeof schema>;
 
@@ -19,7 +20,10 @@ if (process.env.NODE_ENV === 'production') {
   db = pgDrizzle({
     connection: {
       connectionString: connection,
-      ssl: true,
+      ssl: {
+        rejectUnauthorized: true,
+        ca: fs.readFileSync(process.env.PGSSLROOTCERT as string).toString(),
+      },
     },
     schema
   });

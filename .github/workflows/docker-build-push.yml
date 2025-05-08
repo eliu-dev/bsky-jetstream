@@ -10,6 +10,9 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: bluesky
   ECR_REGISTRY: 724772087148.dkr.ecr.us-east-1.amazonaws.com
+  ECS_SERVICE: bluesky
+  ECS_CLUSTER: bluesky
+  ECS_TASK_DEFINITION: bluesky
 
 jobs:
   build-and-push:
@@ -52,12 +55,10 @@ jobs:
       run: |
         docker build --no-cache --platform=linux/amd64 \
           --build-arg BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
-          --build-arg BETTER_AUTH_URL=$BETTER_AUTH_URL \
           --build-arg DATABASE_URL=$DATABASE_URL \
           --build-arg GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
           --build-arg GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET \
           --build-arg BLUESKY_HANDLE=$BLUESKY_HANDLE \
-          --build-arg BLUESKY_APP_PASSWORD=$BLUESKY_APP_PASSWORD \
           --build-arg DEVELOPMENT_CLIENT_ID=$DEVELOPMENT_CLIENT_ID \
           --build-arg PRODUCTION_CLIENT_ID=$PRODUCTION_CLIENT_ID \
           --build-arg PGSSLROOTCERT=$PGSSLROOTCERT \
@@ -69,4 +70,25 @@ jobs:
         docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+    - name: Download task definition
+      run: |
+        aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} \
+        --query taskDefinition > task-definition.json
+
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: bluesky
+        image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true 

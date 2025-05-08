@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const handle = process.env.BLUESKY_HANDLE as string;
     const state = randomUUID();
+    console.log(handle);
 
     const blueskyClient = await getBlueskyClient();
     const url = await blueskyClient.authorize(handle, {

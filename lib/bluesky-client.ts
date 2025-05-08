@@ -25,6 +25,10 @@ let blueskyClientInstance: NodeOAuthClient | null = null;
 
 export async function getBlueskyClient(): Promise<NodeOAuthClient> {
   if (!blueskyClientInstance) {
+    console.log('JWT_PRIVATE_KEY_1:', process.env.JWT_PRIVATE_KEY_1?.substring(0, 50) + '...');
+    console.log('JWT_PRIVATE_KEY_2:', process.env.JWT_PRIVATE_KEY_2?.substring(0, 50) + '...');
+    console.log('JWT_PRIVATE_KEY_3:', process.env.JWT_PRIVATE_KEY_3?.substring(0, 50) + '...');
+
     blueskyClientInstance = await NodeOAuthClient.fromClientId({
       clientId:
         `${clientId}/api/bluesky/oauth/client-metadata.json` as OAuthClientIdDiscoverable,

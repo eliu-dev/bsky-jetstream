@@ -9,7 +9,9 @@
     "db:schema:auth": "npx @better-auth/cli@latest generate --output ./database/schema/auth.ts --config ./lib/auth.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:migrate:production": "NODE_ENV=production drizzle-kit migrate",
+    "db:migrate:production": "PGSSLMODE=verify-full NODE_EXTRA_CA_CERTS=$(pwd)/certs/global-bundle.pem NODE_ENV=production drizzle-kit migrate",
+    "db:drop:all": "psql -h localhost -p 5432 -U postgres -d postgres -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'",
+    "db:drop:all:production": "NODE_ENV=production psql -h bluesky.c2rackackcob.us-east-1.rds.amazonaws.com -p 5432 -U postgres -d postgres -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'",
     "db:studio": "drizzle-kit studio",
     "lint": "next lint"
   },

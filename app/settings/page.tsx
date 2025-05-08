@@ -10,34 +10,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { BlueskyOAuthLoginForm } from '@/components/BlueskyOAuthLoginForm';
 
 const formSchema = z.object({
   handle: z.string(),
 });
-
-export function BlueskyOAuthLoginForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      handle: '',
-    },
-  });
-
-  const startOAuthFlow = async () => {
-    try {
-      window.location.href = '/api/bluesky/oauth/login';
-    } catch (error) {
-      console.error('Failed to start OAuth flow:', error);
-    }
-  };
-
-  return (
-    <div className='flex items-center gap-2'>
-      <Input disabled type='text' value={'bsky_dev'} className='w-80' />
-      <Button onClick={startOAuthFlow}>Connect to Bluesky</Button>
-    </div>
-  );
-}
 
 export default function Settings() {
   const [isConnected, setIsConnected] = useState(false);
@@ -47,7 +25,6 @@ export default function Settings() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // You could add an endpoint to check auth status
         const response = await axios.get('/api/bluesky/oauth/session');
         if (response.data.ok && response.data.profile) {
           setIsConnected(true);

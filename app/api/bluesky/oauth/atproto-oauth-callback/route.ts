@@ -1,5 +1,5 @@
 // Create an endpoint to handle the OAuth callback
-import { blueskyClient } from '@/lib/bluesky-client';
+import { getBlueskyClient } from '@/lib/bluesky-client';
 import { NextRequest, NextResponse } from 'next/server';
 import { Agent } from '@atproto/api';
 import { ProfileViewDetailed } from '@atproto/api/dist/client/types/app/bsky/actor/defs';
@@ -10,6 +10,7 @@ export async function GET(
   console.log(request);
   try {
     const params = new URLSearchParams(request.nextUrl.searchParams);
+    const blueskyClient = await getBlueskyClient();
     const { session, state } = await blueskyClient.callback(params);
 
     // Process successful authentication here

@@ -1,4 +1,4 @@
-import { blueskyClient } from '@/lib/bluesky-client';
+import { getBlueskyClient } from '@/lib/bluesky-client';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 
@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     const handle = process.env.BLUESKY_HANDLE as string;
     const state = randomUUID();
 
+    const blueskyClient = await getBlueskyClient();
     const url = await blueskyClient.authorize(handle, {
       state,
     });

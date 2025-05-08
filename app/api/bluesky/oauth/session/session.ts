@@ -1,4 +1,4 @@
-import { blueskyClient } from '@/lib/bluesky-client';
+import { getBlueskyClient } from '@/lib/bluesky-client';
 import { Agent } from '@atproto/api';
 import { auth } from '@/lib/auth';
 import { headers } from "next/headers";
@@ -21,6 +21,7 @@ export async function getSession() {
     //     }
     // });
     const userDid = 'did:plc:xfgl7z2pynkhazdv7wb3r4bq'
+    const blueskyClient = await getBlueskyClient();
     const oauthSession = await blueskyClient.restore(userDid)
     return oauthSession;
 }

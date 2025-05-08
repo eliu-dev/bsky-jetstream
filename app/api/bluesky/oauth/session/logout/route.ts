@@ -1,4 +1,4 @@
-import { blueskyClient } from '@/lib/bluesky-client';
+import { getBlueskyClient } from '@/lib/bluesky-client';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
         const userDid = 'did:plc:xfgl7z2pynkhazdv7wb3r4bq'; // Or get from request/session
 
         // Revoke the session token
+        const blueskyClient = await getBlueskyClient();
         await blueskyClient.revoke(userDid);
 
         return NextResponse.json({ ok: true, message: 'Successfully logged out' });

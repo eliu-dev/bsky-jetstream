@@ -37,8 +37,35 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
+        BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+        GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+        DEVELOPMENT_CLIENT_ID: ${{ secrets.DEVELOPMENT_CLIENT_ID }}
+        PRODUCTION_CLIENT_ID: ${{ secrets.PRODUCTION_CLIENT_ID }}
+        PGSSLROOTCERT: ${{ secrets.PGSSLROOTCERT }}
+        CRINGE_GENERATOR_URL: ${{ secrets.CRINGE_GENERATOR_URL }}
+        JWT_PRIVATE_KEY_1: ${{ secrets.JWT_PRIVATE_KEY_1 }}
+        JWT_PRIVATE_KEY_2: ${{ secrets.JWT_PRIVATE_KEY_2 }}
+        JWT_PRIVATE_KEY_3: ${{ secrets.JWT_PRIVATE_KEY_3 }}
       run: |
-        docker build --no-cache --platform=linux/amd64 -t $ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --no-cache --platform=linux/amd64 \
+          --build-arg BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
+          --build-arg BETTER_AUTH_URL=$BETTER_AUTH_URL \
+          --build-arg DATABASE_URL=$DATABASE_URL \
+          --build-arg GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
+          --build-arg GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET \
+          --build-arg BLUESKY_HANDLE=$BLUESKY_HANDLE \
+          --build-arg BLUESKY_APP_PASSWORD=$BLUESKY_APP_PASSWORD \
+          --build-arg DEVELOPMENT_CLIENT_ID=$DEVELOPMENT_CLIENT_ID \
+          --build-arg PRODUCTION_CLIENT_ID=$PRODUCTION_CLIENT_ID \
+          --build-arg PGSSLROOTCERT=$PGSSLROOTCERT \
+          --build-arg CRINGE_GENERATOR_URL=$CRINGE_GENERATOR_URL \
+          --build-arg JWT_PRIVATE_KEY_1=$JWT_PRIVATE_KEY_1 \
+          --build-arg JWT_PRIVATE_KEY_2=$JWT_PRIVATE_KEY_2 \
+          --build-arg JWT_PRIVATE_KEY_3=$JWT_PRIVATE_KEY_3 \
+          -t $ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

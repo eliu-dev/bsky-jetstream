@@ -31,9 +31,6 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Debug: List contents of certs directory
-RUN ls -la certs/
-
 # Build the application with minimal checks
 RUN pnpm run build --no-lint
 

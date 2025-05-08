@@ -42,6 +42,18 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build --no-cache --platform=linux/amd64 \
+          --build-arg BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
+          --build-arg DATABASE_URL=$DATABASE_URL \
+          --build-arg GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
+          --build-arg GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET \
+          --build-arg BLUESKY_HANDLE=$BLUESKY_HANDLE \
+          --build-arg DEVELOPMENT_CLIENT_ID=$DEVELOPMENT_CLIENT_ID \
+          --build-arg PRODUCTION_CLIENT_ID=$PRODUCTION_CLIENT_ID \
+          --build-arg PGSSLROOTCERT=$PGSSLROOTCERT \
+          --build-arg CRINGE_GENERATOR_URL=$CRINGE_GENERATOR_URL \
+          --build-arg JWT_PRIVATE_KEY_1=$JWT_PRIVATE_KEY_1 \
+          --build-arg JWT_PRIVATE_KEY_2=$JWT_PRIVATE_KEY_2 \
+          --build-arg JWT_PRIVATE_KEY_3=$JWT_PRIVATE_KEY_3 \
           -t $ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest

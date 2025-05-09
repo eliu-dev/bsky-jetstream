@@ -21,7 +21,7 @@ export default function Settings() {
     const checkAuthStatus = async () => {
       try {
         const response = await axios.get('/api/bluesky/oauth/session');
-        setConnectionChecked(true);
+        //setConnectionChecked(true);
         if (response.data.ok && response.data.profile) {
           setIsConnected(true);
           setProfile(response.data.profile);
@@ -37,39 +37,28 @@ export default function Settings() {
   return (
     <div className='flex justify-center items-center flex-col gap-6 p-4'>
       <h1 className='text-2xl font-bold'>Bluesky Connection</h1>
-      {
-        connectionChecked ? (
-
-          isConnected ? (
-            <div className='flex flex-col gap-2' >
-              <div className='text-green-600 font-medium'>✓ Connected to Bluesky</div>
-              {profile && (
-                <div className='flex items-center gap-2'>
-                  <div className='font-medium'>Account:</div>
-                  <div>@{profile.handle}</div>
-                </div>
-              )}
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  await axios.post('/api/bluesky/oauth/session/logout');
-                  setIsConnected(false);
-                  setProfile(null);
-                }}
-                className='w-fit'
-              >
-                Disconnect
-              </Button>
+      {isConnected ?
+        <div className='flex flex-col gap-2' >
+          <div className='text-green-600 font-medium'>✓ Connected to Bluesky</div>
+          {profile && (
+            <div className='flex items-center gap-2'>
+              <div className='font-medium'>Account:</div>
+              <div>@{profile.handle}</div>
             </div>
-          ) : (
-            <BlueskyOAuthLoginForm />
-          )
-        ) : (
-          <>
-            <Skeleton className="h-8 w-[250px]" />
-            <Skeleton className="h-8 w-[250px]" />
-          </>
-        )
+          )}
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              await axios.post('/api/bluesky/oauth/session/logout');
+              setIsConnected(false);
+              setProfile(null);
+            }}
+            className='w-fit'
+          >
+            Disconnect
+          </Button>
+        </div> :
+        <BlueskyOAuthLoginForm />
       }
     </div >
   );

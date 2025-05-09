@@ -11,17 +11,24 @@ export async function getSession() {
         headers: await headers()
     })
 
-    // if (session && session.user) {
-    //     const user = await db.query.users.findFirst({
-    //         where: eq(users.id, session.user.id)
-    //     })
-    //     if (!user?.did) {
-    //         return null;
-    //     } else {
-    //     }
-    // });
-    const userDid = 'did:plc:xfgl7z2pynkhazdv7wb3r4bq'
+    if (!session?.user) {
+        return null;
+    }
+
+    const user = await db.query.users.findFirst({
+        where: eq(users.id, session.user.id)
+    });
+
+    if (!user?.blueskyUserId) {
+        return null;
+    }
+
     const blueskyClient = await getBlueskyClient();
-    const oauthSession = await blueskyClient.restore(userDid)
-    return oauthSession;
+    try {
+        const oauthSession = await blueskyClient.restore(user.blueskyUserId);
+        return oauthSession;
+    } catch (error) {
+        console.error('Error restoring Bluesky session:', error);
+        return null;
+    }
 }

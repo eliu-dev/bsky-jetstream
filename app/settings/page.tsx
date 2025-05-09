@@ -21,9 +21,9 @@ export default function Settings() {
     const checkAuthStatus = async () => {
       try {
         const response = await axios.get('/api/bluesky/oauth/session');
+        setConnectionChecked(true);
         if (response.data.ok && response.data.profile) {
           setIsConnected(true);
-          setConnectionChecked(true);
           setProfile(response.data.profile);
         }
       } catch (error) {

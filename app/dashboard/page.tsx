@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -11,7 +9,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Sparkles, RefreshCw, Copy, Send, Clock, Share2 } from 'lucide-react';
+import { Info, Sparkles, RefreshCw, Copy, Send, Clock, Share2, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
 
@@ -91,19 +89,16 @@ export default function Dashboard() {
     }
   };
 
-  // Update posts when filter changes
   useEffect(() => {
     if (isConnected) {
       fetchCringePosts(postFilter);
     }
   }, [postFilter]);
 
-  // Post to Bluesky and save to database
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true);
 
-      // 1. Post to Bluesky first
       const response = await fetch('/api/bluesky/post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,9 +115,7 @@ export default function Dashboard() {
 
       console.log("Successfully posted to Bluesky:", data);
 
-      // Only attempt to save to our database if the Bluesky post succeeded
       try {
-        // 2. Save the posted cringe to our database
         const saveResponse = await axios.post('/api/bluesky/cringe', {
           text: values.text,
           prompt: values.text,
@@ -132,12 +125,9 @@ export default function Dashboard() {
 
         console.log("Saved cringe post to database:", saveResponse.data);
       } catch (saveError) {
-        // If saving to our DB fails, just log it - the post still succeeded
         console.error("Failed to save post to database:", saveError);
-        // We don't throw here because the post to Bluesky already succeeded
       }
 
-      // 3. Reset form and refresh the posts list
       form.reset();
       fetchCringePosts();
 
@@ -285,14 +275,14 @@ export default function Dashboard() {
                   variant={postFilter === 'user' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPostFilter('user')}
-                >
+                ><User />
                   My Posts
                 </Button>
                 <Button
                   variant={postFilter === 'all' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPostFilter('all')}
-                >
+                ><Users />
                   All Posts
                 </Button>
               </div>

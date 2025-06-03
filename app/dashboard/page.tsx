@@ -147,7 +147,10 @@ export default function Dashboard() {
 
       // Call the Google Cloud function
       const response = await axios.post('https://bluesky-cringe-generator-895544443438.us-east4.run.app/', {
-        prompt: prompt
+        prompt: prompt,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       // Update the text field with the generated content

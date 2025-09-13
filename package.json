@@ -30,7 +30,7 @@
     "@radix-ui/react-slot": "^1.2.0",
     "@skyware/jetstream": "^0.2.2",
     "@tanstack/react-query": "^5.74.3",
-    "axios": "^1.8.4",
+    "axios": "^1.12.0",
     "better-auth": "^1.2.7",
     "bufferutil": "^4.0.9",
     "class-variance-authority": "^0.7.1",
